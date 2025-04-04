@@ -9,9 +9,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // In-memory session tracking
 const userSessions = {};
 
-// Twilio Credentials (Replace with your actual credentials)
-const accountSid = "AC7302bd9281c1eafa8eac9a977bc22958";
-const authToken = "603582207dc8f18ee0091c693328d9c4";
+// Twilio Credentials 
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
 
 app.get("/", async(req, res) => {
@@ -38,18 +38,18 @@ app.post("/whatsapp",async (req, res) => {
     try {
         // Step 0: Start NDA process when user sends "Hy"
         if (session.step === 0 && message.toLowerCase() === "hy") {
-            console.log('User initiated NDA process.');
+            //console.log('User initiated NDA process.');
             
             const reponse = await twiml.message("Hello! Do you want to create an NDA? Reply 'Yes' to proceed.");
-            console.log('User asked to create NDA.');
-            console.log(`Response: ${reponse}`);
+           // console.log('User asked to create NDA.');
+           //console.log(`Response: ${reponse}`);
             
             
             session.step = 1;
         } 
         else if (session.step === 1) {
             if (message.toLowerCase() === "yes") {
-                console.log('User agreed to proceed with NDA creation.');
+                //console.log('User agreed to proceed with NDA creation.');
                 
                 twiml.message("Great! Let's begin. Please enter 'Party 1 Name':");
                 session.step = 2;
@@ -58,7 +58,7 @@ app.post("/whatsapp",async (req, res) => {
             }
         } 
         else if (session.step === 2) {
-            console.log(`User entered Party 1 Name: ${message}`);
+           // console.log(`User entered Party 1 Name: ${message}`);
             
             if (message.match(/^[a-zA-Z ]+$/)) {
                 session.data.party1 = message;
@@ -133,7 +133,7 @@ app.post("/whatsapp",async (req, res) => {
         twiml.message("An error occurred. Please try again later.");
     }
 
-    console.log(`Sending response to ${from}: ${twiml.toString()}`);
+   // console.log(`Sending response to ${from}: ${twiml.toString()}`);
     
 
     res.type("text/xml").send(twiml.toString());
