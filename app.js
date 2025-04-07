@@ -16,8 +16,8 @@ app.use('/nda', express.static(path.join(__dirname, 'public')));
 const userSessions = {};
 
 // Twilio Credentials 
-const accountSid = "AC02e594f5c45b3bb8ff9f56188e146de2";
-const authToken = "04ac08d36c64fdb4792d7a5a982baf70";
+const accountSid = "AC7302bd9281c1eafa8eac9a977bc22958";
+const authToken = "603582207dc8f18ee0091c693328d9c4";
 const client = twilio(accountSid, authToken);
 
 
@@ -48,9 +48,8 @@ app.post("/whatsapp", async (req, res) => {
         switch (session.step) {
             case 0:
                 if (message.toLowerCase() === "hy") {
-                    twiml.message("Hello! Do you want to create an NDA? Reply 'Yes' to proceed.");
-                   // console.log("Hello! Do you want to create an NDA? Reply 'Yes' to proceed.");
-                    
+                    twiml.message("Welcome to the NDA Generator Bot! How can I assist you today?\n 1. Create New NDA \n 2. View Last NDA ");
+                    console.log("Welcome to the NDA Generator Bot! How can I assist you today?\n 1. Create New NDA \n 2. View Last NDA ");                    
                     session.step = 1;
                 } else {
                     twiml.message("Please reply with 'Hy' to start the NDA process.");
@@ -58,21 +57,51 @@ app.post("/whatsapp", async (req, res) => {
                 break;
 
             case 1:
-                if (message.toLowerCase() === "yes") {
+                if (message.toLowerCase() === "1" || message.toLowerCase() === "Create"  ) {
                     twiml.message("Great! Let's begin. Please enter 'Party 1 Name':");
-                   //console.log("Great! Let's begin. Please enter 'Party 1 Name':");
+                   console.log("Great! Let's begin. Please enter 'Party 1 Name':");
                    
                     session.step = 2;
+                }  else if (message.toLowerCase() === "2" || message.toLowerCase() === "view") {
+                    const fs = require("fs");
+                    const path = require("path");
+                    const phone = from.split(":")[1];
+                    const publicFolder = "./public";
+                
+                    // Get all NDA files for this number
+                    const files = fs.readdirSync(publicFolder)
+                        .filter(file => file.endsWith(`_${phone}.pdf`))
+                        .sort((a, b) => {
+                            const aTime = parseInt(a.split("_")[1]);
+                            const bTime = parseInt(b.split("_")[1]);
+                            return bTime - aTime; // latest first
+                        });
+                
+                    if (files.length > 0) {
+                        const latestFile = files[0];
+                        const publicUrl = `https://d1cc-103-159-214-186.ngrok-free.app/nda/${latestFile}`;
+                
+                        await client.messages.create({
+                            from: 'whatsapp:+14155238886',
+                            to: from,
+                            body: "📄 Here's your last NDA document.",
+                            mediaUrl: [publicUrl]
+                        });
+                        twiml.message("Sent your last NDA document ✅");
+                    } else {
+                        twiml.message("❌ No NDA found for your number. Please generate one by replying with '1'.");
+                    }
                 } else {
-                    twiml.message("Please reply with 'Yes' to proceed.");
+                    twiml.message("Invalid option. Please reply with '1' to create a new NDA or '2' to view the last NDA.");
                 }
+                
                 break;
 
             case 2:
                 if (/^[a-zA-Z ]+$/.test(message)) {
                     session.data.party1 = message;
                    twiml.message("Now, please enter 'Party 2 Name':");
-                   //console.log("Now, please enter 'Party 2 Name':");
+                   console.log("Now, please enter 'Party 2 Name':");
                     session.step = 3;
                 } else {
                     twiml.message("Please enter a valid name (letters and spaces only).");
@@ -83,7 +112,7 @@ app.post("/whatsapp", async (req, res) => {
                 if (/^[a-zA-Z ]+$/.test(message)) {
                     session.data.party2 = message;
                     twiml.message("Enter the 'Agreement Date' (YYYY-MM-DD):");
-                    //console.log("Enter the 'Agreement Date' (YYYY-MM-DD):");
+                    console.log("Enter the 'Agreement Date' (YYYY-MM-DD):");
                     session.step = 4;
                 } else {
                     twiml.message("Please enter a valid name (letters and spaces only).");
@@ -94,7 +123,7 @@ app.post("/whatsapp", async (req, res) => {
                 if (/^\d{4}-\d{2}-\d{2}$/.test(message)) {
                     session.data.agreementDate = message;
                     twiml.message("Describe the 'Confidentiality Terms':");
-                    //console.log("Describe the 'Confidentiality Terms':");
+                    console.log("Describe the 'Confidentiality Terms':");
                     session.step = 5;
                 } else {
                     twiml.message("Invalid date format. Please enter the date as YYYY-MM-DD.");
@@ -102,10 +131,10 @@ app.post("/whatsapp", async (req, res) => {
                 break;
 
             case 5:
-                if (message.length > 10) {
+                if (message.length > 7) {
                     session.data.confidentialityTerms = message;
                     twiml.message("Enter 'Duration of Agreement' (e.g., 2 years):");
-                    //console.log("Enter 'Duration of Agreement' (e.g., 2 years):");
+                    console.log("Enter 'Duration of Agreement' (e.g., 2 years):");
                     session.step = 6;
                 } else {
                     twiml.message("Please provide more detailed confidentiality terms (at least 10 characters).");
@@ -116,7 +145,7 @@ app.post("/whatsapp", async (req, res) => {
                 if (/^\d+ (year|years|month|months)$/.test(message)) {
                     session.data.duration = message;
                     twiml.message("Optional: Enter 'Governing Law' (or type 'Skip' to continue):");
-                   // console.log("Optional: Enter 'Governing Law' (or type 'Skip' to continue):");
+                    console.log("Optional: Enter 'Governing Law' (or type 'Skip' to continue):");
                     session.step = 7;
                 } else {
                     twiml.message("Invalid format. Use formats like '2 years' or '6 months'.");
@@ -129,7 +158,7 @@ app.post("/whatsapp", async (req, res) => {
                 twiml.message(
                     `✅ NDA Details:\n\nParty 1: ${session.data.party1}\nParty 2: ${session.data.party2}\nDate: ${session.data.agreementDate}\nTerms: ${session.data.confidentialityTerms}\nDuration: ${session.data.duration}\nGoverning Law: ${session.data.governingLaw}\n\nReply 'Confirm' to finalize and receive PDF.`
                 );
-               // console.log(`✅ NDA Details:\n\nParty 1: ${session.data.party1}\nParty 2: ${session.data.party2}\nDate: ${session.data.agreementDate}\nTerms: ${session.data.confidentialityTerms}\nDuration: ${session.data.duration}\nGoverning Law: ${session.data.governingLaw}\n\nReply 'Confirm' to finalize and receive PDF.`);
+                console.log(`✅ NDA Details:\n\nParty 1: ${session.data.party1}\nParty 2: ${session.data.party2}\nDate: ${session.data.agreementDate}\nTerms: ${session.data.confidentialityTerms}\nDuration: ${session.data.duration}\nGoverning Law: ${session.data.governingLaw}\n\nReply 'Confirm' to finalize and receive PDF.`);
                 session.step = 8;
                 break;
 
@@ -140,7 +169,9 @@ app.post("/whatsapp", async (req, res) => {
                     // Generate NDA PDF inline here
                     const PDFDocument = require("pdfkit");
                     const fs = require("fs");
-                    const fileName = `nda_${Date.now()}.pdf`;
+                    const phone = from.split(":")[1];
+                    const timestamp = Date.now();
+                    const fileName = `nda_${timestamp}_${phone}.pdf`;
                     const doc = new PDFDocument();
                     const writeStream = fs.createWriteStream('./public/'+fileName);
                     doc.pipe(writeStream);
@@ -169,7 +200,7 @@ app.post("/whatsapp", async (req, res) => {
                                 from: 'whatsapp:+14155238886',
                                 to: from,
                                 body: "🎉 Here's your NDA document (PDF).",
-                                mediaUrl: [`https://912f-103-159-214-186.ngrok-free.app/nda/${fileName}`] // You must serve this file publicly
+                                mediaUrl: [`https://d1cc-103-159-214-186.ngrok-free.app/nda/${fileName}`] // You must serve this file publicly
                             });
      
                             console.log("Media sent:", media.sid);
