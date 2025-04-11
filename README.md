@@ -71,3 +71,12 @@ This makes it the perfect fit for **document-based automation over chat**.
    ```bash
    git clone https://github.com/your-username/whatsapp-nda-bot.git
    cd whatsapp-nda-bot
+
+2. **Add Your Twilio Credentials**
+ Add TWILIO_ACCOUNT_SID , TWILIO_AUTH_TOKEN and TWILIO_WHATSAPP_NUMBER in the main file.
+
+3. **Replace the hosted link via ngrok**
+Replace the hosted link via ngrok for hosting our server.
+
+4. **Connect Twilio Sandbox**
+Connect the Twilio Sandbox to your whatsapp, and also add the hosted link in Sandbox config.
