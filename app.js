@@ -79,7 +79,7 @@ app.post("/whatsapp", async (req, res) => {
 
                     if (files.length > 0) {
                         const latestFile = files[0];
-                        const publicUrl = `https://d1cc-103-159-214-186.ngrok-free.app/nda/${latestFile}`;
+                        const publicUrl = `https://0e4f-103-159-214-189.ngrok-free.app/nda/${latestFile}`;
 
                         await client.messages.create({
                             from: 'whatsapp:+14155238886',
@@ -316,7 +316,7 @@ app.post("/whatsapp", async (req, res) => {
                                 from: 'whatsapp:+14155238886',
                                 to: from,
                                 body: "🎉 Here's your NDA document (PDF).",
-                                mediaUrl: [`https://d1cc-103-159-214-186.ngrok-free.app/nda/${fileName}`] // You must serve this file publicly
+                                mediaUrl: [`https://0e4f-103-159-214-189.ngrok-free.app/nda/${fileName}`] // You must serve this file publicly
                             });
 
                             console.log("Media sent:", media.sid);
