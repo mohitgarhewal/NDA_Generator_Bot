@@ -3,6 +3,8 @@ const bodyParser = require("body-parser");
 const twilio = require("twilio");
 const path = require('path');
 const { MessagingResponse } = require("twilio").twiml;
+const dotenv = require('dotenv');
+dotenv.config();
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -16,8 +18,8 @@ app.use('/nda', express.static(path.join(__dirname, 'public')));
 const userSessions = {};
 
 // Twilio Credentials 
-const accountSid = "AC7302bd9281c1eafa8eac9a977bc22958";
-const authToken = "603582207dc8f18ee0091c693328d9c4";
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
 
 
